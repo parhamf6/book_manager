@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/*
+  Book Archive — paper & amber design tokens.
+  Warm cream paper background, warm dark-brown ink, amber accents.
+  Flat: no gradients, no heavy shadows — borders and tone shifts only.
+*/
+:root {
+  --paper: #fbf3df;        /* page background */
+  --paper-deep: #f4e9cf;   /* wells, hover fills, footer bands */
+  --card: #fffdf4;         /* card / elevated surface */
+  --ink: #3f3422;          /* primary text — warm dark brown */
+  --ink-soft: #857455;     /* secondary text */
+  --line: #e6d9b8;         /* borders, dividers */
+  --line-strong: #d3c193;  /* emphasized borders */
+  --amber: #b45309;        /* accent text / primary buttons (4.5:1 on paper) */
+  --amber-soft: #f2dcb0;   /* accent fills, selected states */
+  --amber-bright: #d97706; /* decorative accents, large elements only */
+  --danger: #b3261e;       /* destructive actions */
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-amber-bright: var(--amber-bright);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Subtle, meaning-carrying transitions only */
+button, a, input, select, textarea {
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
