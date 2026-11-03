@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Vazirmatn } from "next/font/google";
+import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
 import "./globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -13,6 +14,11 @@ export const metadata: Metadata = {
     template: "%s | کتابخانه من",
   },
   description: "آرشیو شخصی کتاب‌ها — فیزیکی، الکترونیکی و صوتی",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#fbf3df",
 };
 
 export default function RootLayout({
@@ -22,7 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <ServiceWorkerRegistrar />
+      </body>
     </html>
   );
 }

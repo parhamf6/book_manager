@@ -16,13 +16,13 @@ interface BookFormProps {
   /** Original scraped cover URL — used as preview and refetched on save */
   initialCoverUrl?: string;
   /**
-   * Custom save behavior (used for editing). Receives the form values plus the
-   * chosen cover file/URL; returns the path to navigate to afterwards.
+   * Custom save behavior (used for editing). Receives the form values plus an
+   * explicit cover choice; returns the path to navigate to afterwards.
    * Defaults to creating a new book and navigating to "/".
    */
   save?: (
     input: BookInput,
-    cover: { file?: File; url?: string },
+    cover: { kind: "none" | "url" | "file"; file?: File; url?: string },
   ) => Promise<string>;
 }
 
@@ -108,20 +108,27 @@ function Field({
 const inputClass =
   "w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-ink placeholder:text-ink-soft focus:border-amber focus:outline-none";
 
+type CoverState =
+  | { kind: "none" }
+  | { kind: "url"; url: string }
+  | { kind: "file"; file: File };
+
 export function BookForm({ initial, initialCoverUrl, save }: BookFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<BookInput>(initial);
-  const [coverUrl, setCoverUrl] = useState<string | undefined>(initialCoverUrl);
-  const [coverFile, setCoverFile] = useState<File | undefined>();
+  const [cover, setCover] = useState<CoverState>(
+    initialCoverUrl ? { kind: "url", url: initialCoverUrl } : { kind: "none" },
+  );
   const [titleError, setTitleError] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | undefined>();
 
   const previewSrc = useMemo(() => {
-    if (coverFile) return URL.createObjectURL(coverFile);
-    if (coverUrl) return `/api/proxy/image?url=${encodeURIComponent(coverUrl)}`;
+    if (cover.kind === "file") return URL.createObjectURL(cover.file);
+    if (cover.kind === "url")
+      return `/api/proxy/image?url=${encodeURIComponent(cover.url)}`;
     return null;
-  }, [coverFile, coverUrl]);
+  }, [cover]);
 
   function set<K extends keyof BookInput>(key: K, value: BookInput[K]) {
     setValues((v) => ({ ...v, [key]: value }));
@@ -137,18 +144,20 @@ export function BookForm({ initial, initialCoverUrl, save }: BookFormProps) {
     setSaving(true);
     setSaveError(undefined);
     try {
+      const coverChoice = {
+        kind: cover.kind,
+        file: cover.kind === "file" ? cover.file : undefined,
+        url: cover.kind === "url" ? cover.url : undefined,
+      } as const;
       let target: string;
       if (save) {
-        target = await save({ ...values, title: values.title.trim() }, {
-          file: coverFile,
-          url: coverUrl,
-        });
+        target = await save({ ...values, title: values.title.trim() }, coverChoice);
       } else {
         let coverBlob: Blob | undefined;
-        if (coverFile) {
-          coverBlob = coverFile;
-        } else if (coverUrl) {
-          coverBlob = await fetchCoverBlob(coverUrl);
+        if (coverChoice.file) {
+          coverBlob = coverChoice.file;
+        } else if (coverChoice.url) {
+          coverBlob = await fetchCoverBlob(coverChoice.url);
         }
         await saveNewBook({ ...values, title: values.title.trim() }, { coverBlob });
         target = "/";
@@ -186,8 +195,8 @@ export function BookForm({ initial, initialCoverUrl, save }: BookFormProps) {
               accept="image/*"
               className="sr-only"
               onChange={(e) => {
-                setCoverFile(e.target.files?.[0]);
-                setCoverUrl(undefined);
+                const file = e.target.files?.[0];
+                setCover(file ? { kind: "file", file } : { kind: "none" });
               }}
             />
           </label>
@@ -199,22 +208,22 @@ export function BookForm({ initial, initialCoverUrl, save }: BookFormProps) {
               id="cover-url"
               type="url"
               dir="ltr"
-              value={coverUrl ?? ""}
-              onChange={(e) => {
-                setCoverUrl(e.target.value || undefined);
-                setCoverFile(undefined);
-              }}
+              value={cover.kind === "url" ? cover.url : ""}
+              onChange={(e) =>
+                setCover(
+                  e.target.value
+                    ? { kind: "url", url: e.target.value }
+                    : { kind: "none" },
+                )
+              }
               placeholder="https://…"
               className={`${inputClass} text-xs`}
             />
           </div>
-          {(coverFile || coverUrl) && (
+          {cover.kind !== "none" && (
             <button
               type="button"
-              onClick={() => {
-                setCoverFile(undefined);
-                setCoverUrl(undefined);
-              }}
+              onClick={() => setCover({ kind: "none" })}
               className="cursor-pointer self-start text-xs text-danger hover:underline"
             >
               حذف جلد

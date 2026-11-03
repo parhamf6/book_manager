@@ -56,16 +56,22 @@ export function BookDetail({ id }: { id: string }) {
 
   async function handleEditSave(
     values: BookInput,
-    cover: { file?: File; url?: string },
+    cover: { kind: "none" | "url" | "file"; file?: File; url?: string },
   ): Promise<string> {
-    let coverBlob: Blob | undefined;
-    if (cover.file) {
-      coverBlob = cover.file;
+    if (cover.kind === "none") {
+      // User explicitly removed the cover
+      await replaceCover(id, undefined, undefined);
+    } else if (cover.file) {
+      await replaceCover(id, cover.file, undefined);
     } else if (cover.url) {
-      coverBlob = await fetchCoverBlob(cover.url);
+      const coverBlob = await fetchCoverBlob(cover.url);
+      await replaceCover(id, coverBlob, cover.url);
     }
-    await replaceCover(id, coverBlob, cover.url);
-    await updateBook(id, values);
+    // The record's coverUrl is owned by replaceCover above — keep the form's
+    // stale copy out of the update (Dexie deletes keypaths set to undefined).
+    const bookValues: BookInput = { ...values };
+    delete bookValues.coverUrl;
+    await updateBook(id, bookValues);
     setEditing(false);
     return `/book/${id}`;
   }

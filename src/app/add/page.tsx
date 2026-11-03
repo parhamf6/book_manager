@@ -106,6 +106,7 @@ export default function AddBookPage() {
         tags: [],
         status: DEFAULT_STATUS,
         ownership: DEFAULT_OWNERSHIP,
+        coverUrl: edition.coverUrl,
         source: "iranketab",
         sourceUrl: `https://www.iranketab.ir${edition.sourcePath}#pts=${edition.productId}`,
       },
