@@ -76,3 +76,12 @@ export async function replaceCover(id: string, blob: Blob | undefined, coverUrl?
     await db.books.update(id, { coverUrl, updatedAt: Date.now() });
   });
 }
+
+/** Persist a new reading order for the queue (ids in display order). */
+export async function reorderQueue(orderedIds: string[]) {
+  await db.transaction("rw", db.books, async () => {
+    for (let i = 0; i < orderedIds.length; i++) {
+      await db.books.update(orderedIds[i], { queueOrder: i + 1, updatedAt: Date.now() });
+    }
+  });
+}
