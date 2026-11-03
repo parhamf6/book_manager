@@ -89,7 +89,7 @@ export async function fetchPage(pathOrUrl: string): Promise<string> {
 export function normalizeBookPath(raw: string): string | null {
   // Accept full URLs, bare paths, or raw book ids. Strips any #pts= fragment
   // (returned separately) and query params.
-  let candidate = raw.trim();
+  const candidate = raw.trim();
   if (/^\d+$/.test(candidate)) {
     return `/book/${candidate}`;
   }
