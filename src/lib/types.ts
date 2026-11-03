@@ -22,6 +22,8 @@ export interface Book {
   categories: string[];
   /** User-defined free-form tags */
   tags: string[];
+  /** Auto-imported from iranketab معرفی — editable by user */
+  intro?: string;
   /** Fully user-authored free text */
   notes?: string;
   status: ReadingStatus;

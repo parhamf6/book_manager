@@ -11,7 +11,6 @@
  */
 
 import * as cheerio from "cheerio";
-import type { AnyNode } from "domhandler";
 
 const BASE = "https://www.iranketab.ir";
 const UA =
@@ -148,7 +147,7 @@ export function searchBooks(term: string, html: string): ScrapeSearchResult[] {
  */
 function parseDetailRows(
   $: cheerio.CheerioAPI,
-  scope: cheerio.Cheerio<AnyNode>,
+  scope: ReturnType<cheerio.CheerioAPI>,
 ): Record<string, string> {
   const rows: Record<string, string> = {};
   scope.find('span.text-default').each((_, el) => {
@@ -166,7 +165,7 @@ function parseDetailRows(
 /** Extract people/publisher links from labeled rows; joins multiple links. */
 function parseLinkedRow(
   $: cheerio.CheerioAPI,
-  scope: cheerio.Cheerio<AnyNode>,
+  scope: ReturnType<cheerio.CheerioAPI>,
   label: string,
 ): string | undefined {
   let value: string | undefined;
