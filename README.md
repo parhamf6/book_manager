@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# کتابخانه من — Book Archive
 
-## Getting Started
+A personal, offline-first book library. All data (books, tags, notes, and cached
+cover images) lives in the browser via IndexedDB — there is no server-side
+database. The Next.js server only proxies iranketab.ir scraping, since browsers
+block direct cross-origin fetches.
 
-First, run the development server:
+## Features
+
+- **Import from iranketab.ir** — paste a book link or search by keyword; all
+  editions of the work are shown and you pick yours. Name, author, translator,
+  publisher, pages, Shamsi + Gregorian years, ISBN, trim size, binding, intro,
+  and categories are scraped and fully editable before saving.
+- **Manual entry** — everything can be entered by hand; covers via upload or URL.
+- **Reading states** — queued (ordered, drag-to-rearrange queue) / reading / read.
+- **Ownership** — physical / e-book / audio, plus a personal 1–5 star rating and
+  free-form notes and tags.
+- **Export / import** — full-fidelity JSON (covers embedded) or CSV for
+  spreadsheets; merge or replace on import.
+- **Offline** — service worker + cached cover blobs: after the first visit,
+  browsing, editing, and the queue all work without a connection. Scraping new
+  books naturally requires internet.
+
+## Stack
+
+Next.js (App Router) · TypeScript · Tailwind CSS 4 · Dexie (IndexedDB) ·
+cheerio (server-side parsing) · Vazirmatn font · RTL Persian UI
+
+## Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The server is stateless, so any Node host works:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Vercel** — import the repo; the scrape routes (`/api/scrape/*`,
+  `/api/proxy/image`) run as serverless functions.
+- **VPS / Dokploy** — build and run the standard Next.js container
+  (`pnpm build && pnpm start`, port 3000).
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Your library lives in the browser, not on the server — moving hosts doesn't
+move data. Use Settings → Export to back up or transfer between browsers.
