@@ -45,3 +45,34 @@ export async function fetchCoverBlob(coverUrl: string): Promise<Blob | undefined
 
 export const DEFAULT_STATUS: ReadingStatus = "queued";
 export const DEFAULT_OWNERSHIP: Ownership = "physical";
+
+/** Patch an existing book. Queued books entering the queue get appended last. */
+export async function updateBook(id: string, patch: Partial<Book>) {
+  const current = await db.books.get(id);
+  if (!current) return;
+
+  const next = { ...patch, updatedAt: Date.now() };
+  if (patch.status === "queued" && current.status !== "queued" && current.queueOrder === undefined) {
+    const queued = await db.books.where("status").equals("queued").toArray();
+    next.queueOrder = queued.reduce((max, b) => Math.max(max, b.queueOrder ?? 0), 0) + 1;
+  }
+  await db.books.update(id, next);
+}
+
+export async function deleteBook(id: string) {
+  await db.transaction("rw", db.books, db.covers, async () => {
+    await db.books.delete(id);
+    await db.covers.delete(id);
+  });
+}
+
+export async function replaceCover(id: string, blob: Blob | undefined, coverUrl?: string) {
+  await db.transaction("rw", db.books, db.covers, async () => {
+    if (blob) {
+      await db.covers.put({ bookId: id, blob });
+    } else {
+      await db.covers.delete(id);
+    }
+    await db.books.update(id, { coverUrl, updatedAt: Date.now() });
+  });
+}

@@ -15,6 +15,15 @@ interface BookFormProps {
   initial: BookInput;
   /** Original scraped cover URL — used as preview and refetched on save */
   initialCoverUrl?: string;
+  /**
+   * Custom save behavior (used for editing). Receives the form values plus the
+   * chosen cover file/URL; returns the path to navigate to afterwards.
+   * Defaults to creating a new book and navigating to "/".
+   */
+  save?: (
+    input: BookInput,
+    cover: { file?: File; url?: string },
+  ) => Promise<string>;
 }
 
 type TagEditorProps = {
@@ -99,7 +108,7 @@ function Field({
 const inputClass =
   "w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-ink placeholder:text-ink-soft focus:border-amber focus:outline-none";
 
-export function BookForm({ initial, initialCoverUrl }: BookFormProps) {
+export function BookForm({ initial, initialCoverUrl, save }: BookFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<BookInput>(initial);
   const [coverUrl, setCoverUrl] = useState<string | undefined>(initialCoverUrl);
@@ -128,14 +137,23 @@ export function BookForm({ initial, initialCoverUrl }: BookFormProps) {
     setSaving(true);
     setSaveError(undefined);
     try {
-      let coverBlob: Blob | undefined;
-      if (coverFile) {
-        coverBlob = coverFile;
-      } else if (coverUrl) {
-        coverBlob = await fetchCoverBlob(coverUrl);
+      let target: string;
+      if (save) {
+        target = await save({ ...values, title: values.title.trim() }, {
+          file: coverFile,
+          url: coverUrl,
+        });
+      } else {
+        let coverBlob: Blob | undefined;
+        if (coverFile) {
+          coverBlob = coverFile;
+        } else if (coverUrl) {
+          coverBlob = await fetchCoverBlob(coverUrl);
+        }
+        await saveNewBook({ ...values, title: values.title.trim() }, { coverBlob });
+        target = "/";
       }
-      await saveNewBook({ ...values, title: values.title.trim() }, { coverBlob });
-      router.push("/");
+      router.push(target);
     } catch (err) {
       console.error(err);
       setSaveError("ذخیره کتاب ناموفق بود. دوباره تلاش کنید.");
