@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import {
   OWNERSHIP_LABELS,
   READING_STATUS_LABELS,
+  type Book,
   type Ownership,
   type ReadingStatus,
 } from "@/lib/types";
@@ -18,6 +19,55 @@ type SortKey = "recent" | "title" | "rating";
 const inputClass =
   "rounded-md border border-line bg-card px-3 py-2 text-sm text-ink placeholder:text-ink-soft focus:border-amber focus:outline-none";
 
+/** Searchable fields — each maps a book + lowercase query to a match. */
+const SEARCH_FIELDS = [
+  {
+    key: "title",
+    label: "عنوان",
+    match: (b: Book, q: string) =>
+      [b.title, b.titleLatin].some((f) => f?.toLowerCase().includes(q)),
+  },
+  {
+    key: "people",
+    label: "نویسنده/مترجم",
+    match: (b: Book, q: string) =>
+      [b.author, b.translator].some((f) => f?.toLowerCase().includes(q)),
+  },
+  {
+    key: "publisher",
+    label: "ناشر",
+    match: (b: Book, q: string) => b.publisher?.toLowerCase().includes(q) ?? false,
+  },
+  {
+    key: "tags",
+    label: "برچسب‌ها",
+    match: (b: Book, q: string) => b.tags.some((t) => t.toLowerCase().includes(q)),
+  },
+  {
+    key: "categories",
+    label: "دسته‌بندی‌ها",
+    match: (b: Book, q: string) =>
+      b.categories.some((c) => c.toLowerCase().includes(q)) ||
+      (b.userCategories ?? []).some((c) => c.toLowerCase().includes(q)),
+  },
+  {
+    key: "text",
+    label: "یادداشت/معرفی",
+    match: (b: Book, q: string) =>
+      [b.notes, b.intro].some((f) => f?.toLowerCase().includes(q)),
+  },
+  {
+    key: "isbn",
+    label: "شابک",
+    match: (b: Book, q: string) => b.isbn?.includes(q) ?? false,
+  },
+] as const;
+
+type SearchFieldKey = (typeof SEARCH_FIELDS)[number]["key"];
+
+/** Default scope mirrors the original behavior: bibliographic fields only. */
+const DEFAULT_SEARCH_SCOPE: SearchFieldKey[] = ["title", "people", "publisher"];
+
 export default function LibraryPage() {
   const [tab, setTab] = useState<StatusTab>("all");
   const [ownership, setOwnership] = useState<Ownership | "all">("all");
@@ -25,6 +75,7 @@ export default function LibraryPage() {
   const [category, setCategory] = useState<string>("all");
   const [userCategory, setUserCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
+  const [searchScope, setSearchScope] = useState<SearchFieldKey[]>(DEFAULT_SEARCH_SCOPE);
   const [sort, setSort] = useState<SortKey>("recent");
 
   const books = useLiveQuery(() => db.books.toArray(), [], undefined);
@@ -55,20 +106,25 @@ export default function LibraryPage() {
     if (category !== "all") list = list.filter((b) => b.categories.includes(category));
     if (userCategory !== "all")
       list = list.filter((b) => (b.userCategories ?? []).includes(userCategory));
-    const q = query.trim();
+    const q = query.trim().toLowerCase();
     if (q) {
-      list = list.filter((b) =>
-        [b.title, b.titleLatin, b.author, b.translator, b.publisher]
-          .filter(Boolean)
-          .some((field) => field!.toLowerCase().includes(q.toLowerCase())),
-      );
+      const active = SEARCH_FIELDS.filter((f) => searchScope.includes(f.key));
+      list = list.filter((b) => active.some((f) => f.match(b, q)));
     }
     return [...list].sort((a, b) => {
       if (sort === "title") return a.title.localeCompare(b.title, "fa");
       if (sort === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
       return b.createdAt - a.createdAt;
     });
-  }, [books, tab, ownership, tag, category, userCategory, query, sort]);
+  }, [books, tab, ownership, tag, category, userCategory, query, searchScope, sort]);
+
+  function toggleSearchField(key: SearchFieldKey) {
+    setSearchScope((scope) =>
+      scope.includes(key)
+        ? scope.filter((k) => k !== key)
+        : [...scope, key],
+    );
+  }
 
   const counts = useMemo(() => {
     const list = books ?? [];
@@ -192,6 +248,26 @@ export default function LibraryPage() {
             <option value="title">عنوان</option>
             <option value="rating">امتیاز</option>
           </select>
+        </div>
+
+        {/* Search scope */}
+        <div className="mb-6 flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-ink-soft">جستجو در:</span>
+          {SEARCH_FIELDS.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={searchScope.includes(key)}
+              onClick={() => toggleSearchField(key)}
+              className={`cursor-pointer rounded-full px-3 py-1 text-xs ${
+                searchScope.includes(key)
+                  ? "bg-amber-soft font-medium text-ink"
+                  : "border border-line bg-card text-ink-soft hover:border-line-strong"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Grid */}
