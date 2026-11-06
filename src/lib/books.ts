@@ -43,6 +43,20 @@ export async function fetchCoverBlob(coverUrl: string): Promise<Blob | undefined
   }
 }
 
+/** Resolve the chosen cover (upload or URL) and persist a new book in one step. */
+export async function persistNewBook(
+  input: BookInput,
+  cover: { file?: File; url?: string },
+) {
+  let coverBlob: Blob | undefined;
+  if (cover.file) {
+    coverBlob = cover.file;
+  } else if (cover.url) {
+    coverBlob = await fetchCoverBlob(cover.url);
+  }
+  return saveNewBook(input, { coverBlob });
+}
+
 export const DEFAULT_STATUS: ReadingStatus = "queued";
 export const DEFAULT_OWNERSHIP: Ownership = "physical";
 

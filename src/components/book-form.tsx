@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TagEditor } from "@/components/tag-editor";
-import { fetchCoverBlob, saveNewBook, type BookInput } from "@/lib/books";
+import { persistNewBook, type BookInput } from "@/lib/books";
 import {
   OWNERSHIP_LABELS,
   READING_STATUS_LABELS,
@@ -17,14 +17,15 @@ interface BookFormProps {
   /** Original scraped cover URL — used as preview and refetched on save */
   initialCoverUrl?: string;
   /**
-   * Custom save behavior (used for editing). Receives the form values plus an
-   * explicit cover choice; returns the path to navigate to afterwards.
-   * Defaults to creating a new book and navigating to "/".
+   * Custom save behavior (used for editing and batch mode). Receives the form
+   * values plus an explicit cover choice. Return a path to navigate to, or
+   * undefined to stay on the page. Defaults to creating a new book and
+   * navigating to "/".
    */
   save?: (
     input: BookInput,
     cover: { kind: "none" | "url" | "file"; file?: File; url?: string },
-  ) => Promise<string>;
+  ) => Promise<string | undefined>;
 }
 
 function Field({
@@ -94,20 +95,19 @@ export function BookForm({ initial, initialCoverUrl, save }: BookFormProps) {
         file: cover.kind === "file" ? cover.file : undefined,
         url: cover.kind === "url" ? cover.url : undefined,
       } as const;
-      let target: string;
+      let target: string | undefined;
       if (save) {
         target = await save({ ...values, title: values.title.trim() }, coverChoice);
       } else {
-        let coverBlob: Blob | undefined;
-        if (coverChoice.file) {
-          coverBlob = coverChoice.file;
-        } else if (coverChoice.url) {
-          coverBlob = await fetchCoverBlob(coverChoice.url);
-        }
-        await saveNewBook({ ...values, title: values.title.trim() }, { coverBlob });
+        await persistNewBook({ ...values, title: values.title.trim() }, coverChoice);
         target = "/";
       }
-      router.push(target);
+      if (target) {
+        router.push(target);
+      } else {
+        // Stay on the page (batch mode) — re-enable the button for the next book.
+        setSaving(false);
+      }
     } catch (err) {
       console.error(err);
       setSaveError("ذخیره کتاب ناموفق بود. دوباره تلاش کنید.");
