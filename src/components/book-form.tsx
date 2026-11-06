@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { TagEditor } from "@/components/tag-editor";
 import { fetchCoverBlob, saveNewBook, type BookInput } from "@/lib/books";
 import {
   OWNERSHIP_LABELS,
@@ -24,62 +25,6 @@ interface BookFormProps {
     input: BookInput,
     cover: { kind: "none" | "url" | "file"; file?: File; url?: string },
   ) => Promise<string>;
-}
-
-type TagEditorProps = {
-  label: string;
-  values: string[];
-  onChange: (next: string[]) => void;
-  placeholder?: string;
-};
-
-function TagEditor({ label, values, onChange, placeholder }: TagEditorProps) {
-  const [draft, setDraft] = useState("");
-
-  function commit() {
-    const tag = draft.trim();
-    if (tag && !values.includes(tag)) {
-      onChange([...values, tag]);
-    }
-    setDraft("");
-  }
-
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-ink">{label}</label>
-      <input
-        type="text"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === ",") {
-            e.preventDefault();
-            commit();
-          }
-        }}
-        onBlur={commit}
-        placeholder={placeholder}
-        className="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-ink placeholder:text-ink-soft focus:border-amber focus:outline-none"
-      />
-      {values.length > 0 && (
-        <ul className="mt-2 flex flex-wrap gap-2">
-          {values.map((tag) => (
-            <li key={tag}>
-              <button
-                type="button"
-                onClick={() => onChange(values.filter((t) => t !== tag))}
-                className="flex cursor-pointer items-center gap-1 rounded-full border border-line bg-paper-deep px-3 py-1 text-xs text-ink hover:border-line-strong"
-                aria-label={`حذف ${tag}`}
-              >
-                {tag}
-                <span aria-hidden="true">×</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 function Field({
@@ -403,13 +348,19 @@ export function BookForm({ initial, initialCoverUrl, save }: BookFormProps) {
       </section>
 
       <TagEditor
+        label="دسته‌بندی شخصی"
+        values={values.userCategories}
+        onChange={(userCategories) => set("userCategories", userCategories)}
+        placeholder="مثلاً کتاب‌های کاری، رمان فارسی… (Enter برای افزودن)"
+      />
+      <TagEditor
         label="برچسب‌ها"
         values={values.tags}
         onChange={(tags) => set("tags", tags)}
         placeholder="مثلاً رمان، وام‌دار… (Enter برای افزودن)"
       />
       <TagEditor
-        label="دسته‌بندی‌ها"
+        label="دسته‌بندی‌های ایران‌کتاب"
         values={values.categories}
         onChange={(categories) => set("categories", categories)}
         placeholder="دسته‌بندی‌های ایران‌کتاب اینجا می‌آیند؛ می‌توانید ویرایش کنید"

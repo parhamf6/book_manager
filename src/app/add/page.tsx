@@ -17,6 +17,7 @@ const inputClass =
 const emptyValues: BookInput = {
   title: "",
   categories: [],
+  userCategories: [],
   tags: [],
   status: DEFAULT_STATUS,
   ownership: DEFAULT_OWNERSHIP,
@@ -103,6 +104,7 @@ export default function AddBookPage() {
         binding: edition.binding,
         intro: data.intro,
         categories: data.categories,
+        userCategories: [],
         tags: [],
         status: DEFAULT_STATUS,
         ownership: DEFAULT_OWNERSHIP,

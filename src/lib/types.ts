@@ -20,6 +20,8 @@ export interface Book {
   binding?: string;
   /** Auto-imported from iranketab دسته‌بندی */
   categories: string[];
+  /** User-defined personal categories (collections) — separate from iranketab's */
+  userCategories: string[];
   /** User-defined free-form tags */
   tags: string[];
   /** Auto-imported from iranketab معرفی — editable by user */

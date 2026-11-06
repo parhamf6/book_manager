@@ -119,6 +119,7 @@ const CSV_COLUMNS = [
   "notes",
   "tags",
   "categories",
+  "userCategories",
   "status",
   "ownership",
   "rating",
@@ -148,6 +149,7 @@ export async function exportCsv(): Promise<Blob> {
       book.notes,
       book.tags.join("؛ "),
       book.categories.join("؛ "),
+      book.userCategories.join("؛ "),
       book.status,
       book.ownership,
       book.rating,
@@ -167,6 +169,7 @@ interface JsonBook {
   ownership?: unknown;
   tags?: unknown;
   categories?: unknown;
+  userCategories?: unknown;
   coverDataUrl?: unknown;
   [key: string]: unknown;
 }
@@ -196,6 +199,9 @@ function coerceBook(raw: JsonBook, now: number): Book | null {
     notes: typeof raw.notes === "string" ? raw.notes : undefined,
     categories: Array.isArray(raw.categories)
       ? raw.categories.filter((c): c is string => typeof c === "string")
+      : [],
+    userCategories: Array.isArray(raw.userCategories)
+      ? raw.userCategories.filter((c): c is string => typeof c === "string")
       : [],
     tags: Array.isArray(raw.tags)
       ? raw.tags.filter((t): t is string => typeof t === "string")
@@ -325,6 +331,10 @@ export async function importCsv(file: File): Promise<ImportResult> {
         .map((t) => t.trim())
         .filter(Boolean),
       categories: get(row, "categories")
+        .split(/[؛;]/)
+        .map((c) => c.trim())
+        .filter(Boolean),
+      userCategories: get(row, "userCategories")
         .split(/[؛;]/)
         .map((c) => c.trim())
         .filter(Boolean),

@@ -22,6 +22,8 @@ export default function LibraryPage() {
   const [tab, setTab] = useState<StatusTab>("all");
   const [ownership, setOwnership] = useState<Ownership | "all">("all");
   const [tag, setTag] = useState<string>("all");
+  const [category, setCategory] = useState<string>("all");
+  const [userCategory, setUserCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("recent");
 
@@ -32,11 +34,27 @@ export default function LibraryPage() {
     [books],
   );
 
+  const allCategories = useMemo(
+    () => Array.from(new Set((books ?? []).flatMap((b) => b.categories))).sort((a, b) => a.localeCompare(b, "fa")),
+    [books],
+  );
+
+  const allUserCategories = useMemo(
+    () =>
+      Array.from(new Set((books ?? []).flatMap((b) => b.userCategories ?? []))).sort((a, b) =>
+        a.localeCompare(b, "fa"),
+      ),
+    [books],
+  );
+
   const filtered = useMemo(() => {
     let list = books ?? [];
     if (tab !== "all") list = list.filter((b) => b.status === tab);
     if (ownership !== "all") list = list.filter((b) => b.ownership === ownership);
     if (tag !== "all") list = list.filter((b) => b.tags.includes(tag));
+    if (category !== "all") list = list.filter((b) => b.categories.includes(category));
+    if (userCategory !== "all")
+      list = list.filter((b) => (b.userCategories ?? []).includes(userCategory));
     const q = query.trim();
     if (q) {
       list = list.filter((b) =>
@@ -50,7 +68,7 @@ export default function LibraryPage() {
       if (sort === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
       return b.createdAt - a.createdAt;
     });
-  }, [books, tab, ownership, tag, query, sort]);
+  }, [books, tab, ownership, tag, category, userCategory, query, sort]);
 
   const counts = useMemo(() => {
     const list = books ?? [];
@@ -119,6 +137,36 @@ export default function LibraryPage() {
               </option>
             ))}
           </select>
+          {allUserCategories.length > 0 && (
+            <select
+              value={userCategory}
+              onChange={(e) => setUserCategory(e.target.value)}
+              aria-label="دسته‌بندی شخصی"
+              className={inputClass}
+            >
+              <option value="all">همه‌ی دسته‌بندی‌های شخصی</option>
+              {allUserCategories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          )}
+          {allCategories.length > 0 && (
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              aria-label="دسته‌بندی"
+              className={inputClass}
+            >
+              <option value="all">همه‌ی دسته‌بندی‌ها</option>
+              {allCategories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          )}
           {allTags.length > 0 && (
             <select
               value={tag}

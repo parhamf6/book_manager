@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BookForm } from "@/components/book-form";
 import { CoverImage } from "@/components/cover-image";
+import { TagEditor } from "@/components/tag-editor";
 import { db } from "@/lib/db";
 import {
   deleteBook,
@@ -92,6 +93,7 @@ export function BookDetail({ id }: { id: string }) {
       intro: book.intro,
       notes: book.notes,
       categories: book.categories,
+      userCategories: book.userCategories ?? [],
       tags: book.tags,
       status: book.status,
       ownership: book.ownership,
@@ -206,23 +208,35 @@ export function BookDetail({ id }: { id: string }) {
             </select>
           </div>
 
-          {/* Tags & categories */}
-          {(book.tags.length > 0 || book.categories.length > 0) && (
+          {/* Personal category quick editor */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-ink-soft">دسته‌بندی شخصی:</span>
+            <TagEditor
+              compact
+              label="دسته‌بندی شخصی"
+              values={book.userCategories ?? []}
+              onChange={(userCategories) => updateBook(id, { userCategories })}
+              placeholder="افزودن…"
+            />
+          </div>
+
+          {/* Tags */}
+          {(book.tags.length > 0 || (book.userCategories ?? []).length > 0) && (
             <div className="mt-4 flex flex-wrap gap-1.5">
+              {(book.userCategories ?? []).map((c) => (
+                <span
+                  key={c}
+                  className="rounded-full border border-dashed border-line-strong px-3 py-1 text-xs text-ink"
+                >
+                  {c}
+                </span>
+              ))}
               {book.tags.map((t) => (
                 <span
                   key={t}
                   className="rounded-full bg-amber-soft px-3 py-1 text-xs text-ink"
                 >
                   {t}
-                </span>
-              ))}
-              {book.categories.map((c) => (
-                <span
-                  key={c}
-                  className="rounded-full border border-line px-3 py-1 text-xs text-ink-soft"
-                >
-                  {c}
                 </span>
               ))}
             </div>
