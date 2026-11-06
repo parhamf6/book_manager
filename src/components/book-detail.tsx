@@ -253,6 +253,40 @@ export function BookDetail({ id }: { id: string }) {
             <Meta label="نوع جلد" value={book.binding} />
           </dl>
 
+          {/* More data — accordion */}
+          {book.categories.length > 0 && (
+            <details className="group mt-6 rounded-lg border border-line bg-card">
+              <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                اطلاعات بیشتر
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="h-4 w-4 text-ink-soft transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <div className="border-t border-line px-4 py-4">
+                <h3 className="mb-2 text-xs text-ink-soft">
+                  دسته‌بندی‌های ایران‌کتاب
+                </h3>
+                <ul className="flex flex-wrap gap-1.5">
+                  {book.categories.map((c) => (
+                    <li
+                      key={c}
+                      className="rounded-full border border-line px-3 py-1 text-xs text-ink-soft"
+                    >
+                      {c}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </details>
+          )}
+
           {/* Intro */}
           {book.intro && (
             <section className="mt-6">
