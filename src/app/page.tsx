@@ -59,6 +59,7 @@ export default function LibraryPage() {
       queued: list.filter((b) => b.status === "queued").length,
       reading: list.filter((b) => b.status === "reading").length,
       read: list.filter((b) => b.status === "read").length,
+      shelf: list.filter((b) => b.status === "shelf").length,
     };
   }, [books]);
 
@@ -75,6 +76,7 @@ export default function LibraryPage() {
               ["queued", `${READING_STATUS_LABELS.queued} (${counts.queued})`],
               ["reading", `${READING_STATUS_LABELS.reading} (${counts.reading})`],
               ["read", `${READING_STATUS_LABELS.read} (${counts.read})`],
+              ["shelf", `${READING_STATUS_LABELS.shelf} (${counts.shelf})`],
             ] as const
           ).map(([key, label]) => (
             <button

@@ -1,4 +1,4 @@
-export type ReadingStatus = "queued" | "reading" | "read";
+export type ReadingStatus = "queued" | "reading" | "read" | "shelf";
 export type Ownership = "physical" | "ebook" | "audio";
 export type BookSource = "manual" | "iranketab";
 
@@ -49,6 +49,7 @@ export const READING_STATUS_LABELS: Record<ReadingStatus, string> = {
   queued: "در صف",
   reading: "در حال خواندن",
   read: "خوانده‌شده",
+  shelf: "در دسترس",
 };
 
 export const OWNERSHIP_LABELS: Record<Ownership, string> = {

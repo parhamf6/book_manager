@@ -175,7 +175,7 @@ function coerceBook(raw: JsonBook, now: number): Book | null {
   const title = typeof raw.title === "string" ? raw.title.trim() : "";
   if (!title) return null;
 
-  const validStatus: ReadingStatus[] = ["queued", "reading", "read"];
+  const validStatus: ReadingStatus[] = ["queued", "reading", "read", "shelf"];
   const validOwnership: Ownership[] = ["physical", "ebook", "audio"];
 
   return {
@@ -298,7 +298,7 @@ export async function importCsv(file: File): Promise<ImportResult> {
       skipped++;
       continue;
     }
-    const status = ["queued", "reading", "read"].includes(get(row, "status"))
+    const status = ["queued", "reading", "read", "shelf"].includes(get(row, "status"))
       ? (get(row, "status") as ReadingStatus)
       : "queued";
     const ownership = ["physical", "ebook", "audio"].includes(get(row, "ownership"))

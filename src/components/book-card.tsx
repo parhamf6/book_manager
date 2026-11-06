@@ -12,6 +12,7 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
   queued: "bg-paper-deep text-ink",
   reading: "bg-amber-soft text-ink",
   read: "bg-ink text-paper",
+  shelf: "border border-line bg-card text-ink-soft",
 };
 
 export function BookCard({ book }: { book: Book }) {
